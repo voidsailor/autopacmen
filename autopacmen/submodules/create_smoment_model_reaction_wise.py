@@ -183,6 +183,7 @@ def create_smoment_model_reaction_wise(
 
     # Main loop :D, add enzyme constraints to reactions \o/
     for model_reaction_id in model_reaction_ids:
+        
         # Get the reaction and split the ID at the ID addition
         reaction = model.reactions.get_by_id(model_reaction_id)
         splitted_id = reaction.id.split(id_addition)
@@ -192,9 +193,9 @@ def create_smoment_model_reaction_wise(
             continue
         # Take the reaction ID from the first part of the split
         reaction_id = splitted_id[0]
+
         # Remove GPRSPLIT name addition from reactions with measured protein concentrations
-        if "_GPRSPLIT_" in reaction_id:
-            reaction_id = reaction_id.split("_GPRSPLIT_")[0]
+        original_reaction_id = reaction_id.split("_GPRSPLIT_")[0]
 
         # If the reaction has no associated enzyme stoichiometries, ignore it
         if reaction_id not in list(reaction_id_gene_rules_mapping.keys()):
@@ -204,7 +205,7 @@ def create_smoment_model_reaction_wise(
         if gene_rule == [""]:
             continue
         # If the reaction is manually excluded, ignore it
-        if reaction_id in excluded_reactions:
+        if original_reaction_id in excluded_reactions:
             continue
 
         # Check if all proteins in the reaction's gene rule have a found mass
@@ -226,9 +227,9 @@ def create_smoment_model_reaction_wise(
             continue
 
         # Retrieve the reaction's forward and reverse kcats from the given reaction<->kcat database
-        if reaction_id in reactions_kcat_mapping_database.keys():
-            forward_kcat = reactions_kcat_mapping_database[reaction_id]["forward"]
-            reverse_kcat = reactions_kcat_mapping_database[reaction_id]["reverse"]
+        if original_reaction_id in reactions_kcat_mapping_database.keys():
+            forward_kcat = reactions_kcat_mapping_database[original_reaction_id]["forward"]
+            reverse_kcat = reactions_kcat_mapping_database[original_reaction_id]["reverse"]
         # If the reaction is not in the database, set the default kcat
         else:
             forward_kcat = default_kcat
@@ -258,12 +259,10 @@ def create_smoment_model_reaction_wise(
         stoichiometries: List[float] = []
         # List of enzyme names and stoichiometries (semicolon-separated) for a console report
         stoichiometry_enzyme_name_list: List[str] = []
+
         for isozyme_id in gene_rule:
             # If it's not a complex :O...
             if type(isozyme_id) is str:
-                # ...get the reaction ID without the additions...
-                reaction_id = reaction_id.split("_TG_")[0]
-
                 # ...get the number of units for this protein...
                 number_units = reaction_id_gene_rules_protein_stoichiometry_mapping[
                     reaction_id
@@ -303,10 +302,8 @@ def create_smoment_model_reaction_wise(
 
                 # ...go through each single ID of the complex...
                 stoichiometry_enzyme_name_list.append("")
-                for single_id in isozyme_id:
-                    # ...get the reaction ID without additions...
-                    reaction_id = reaction_id.split("_TG_")[0]
 
+                for single_id in isozyme_id:
                     # ...get the number of units for this protein...
                     number_units = reaction_id_gene_rules_protein_stoichiometry_mapping[
                         reaction_id

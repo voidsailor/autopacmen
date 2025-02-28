@@ -166,6 +166,12 @@ def apply_scenario_on_model(
         reactions_to_set_up = scenario["setup"].keys()
         for reaction_to_set_up in reactions_to_set_up:
             reaction_setup = scenario["setup"][reaction_to_set_up]
+
+            if "lower_bound" in reaction_setup.keys() and "upper_bound" in reaction_setup.keys():
+                # if old upper bound is lower than new lower bound, there will be an error --> assign both bounds at once if present
+                model.reactions.get_by_id(reaction_to_set_up).bounds = (reaction_setup["lower_bound"], reaction_setup["upper_bound"])
+                continue
+
             if "lower_bound" in reaction_setup.keys():
                 new_lower_bound = reaction_setup["lower_bound"]
                 model.reactions.get_by_id(reaction_to_set_up).lower_bound = (
@@ -265,6 +271,9 @@ def get_model_with_separated_measured_enzyme_reactions(
     print(all_measured_proteins)
     reaction_ids = [x.id for x in model.reactions]
     for reaction_id in reaction_ids:
+
+        print('splitting ' + reaction_id)
+
         reaction = model.reactions.get_by_id(reaction_id)
         if reaction.id not in reaction_id_gene_rules_mapping.keys():
             continue

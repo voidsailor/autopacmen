@@ -34,6 +34,21 @@ from .helper_general import standardize_folder
 # Internal modules
 from .kegg import kegg_rest_get_batch
 
+def check_bracket_balance(substring: str) -> bool:
+    """Check if opened brackets in a string are closed again.
+    
+    Arguments:
+    *substring: str ~ The string to be checked.
+    """
+    stack = []
+    for char in substring:
+        if char == "(":
+            stack.append(char)
+        elif char == ")":
+            if len(stack) == 0:
+                return False
+            stack.pop()
+    return len(stack) == 0
 
 # INTERNAL FUNCTIONS SECTION
 def _gene_rule_as_list(gene_rule: str) -> List[Any]:
@@ -46,13 +61,26 @@ def _gene_rule_as_list(gene_rule: str) -> List[Any]:
     *gene_rule: str ~ The gene rule which shall be converted into the list form.
     """
     gene_rules_array: List[Any] = []
+
+    # complex GPR
     if (" or " in gene_rule) and (" and " in gene_rule):
         gene_rule_split = gene_rule.split("or")
+
+        for isoenzyme_string in gene_rule_split:
+            # if brackets in a substring are not balanced, the complex rule has not been split correctly.
+            # Skipping this reaction is the easiest solution for now.
+            has_balanced_brackets = check_bracket_balance(isoenzyme_string)
+            if not has_balanced_brackets:
+                print("GPR too complex for splitting: " + gene_rule)
+                return []
+
         gene_rule_split = [x.replace("(", "").replace(")", "") for x in gene_rule_split]
         for part in gene_rule_split:
             and_list = part.split(" and ")
             and_list = [x.replace(" ", "") for x in and_list]
             gene_rules_array.append(and_list)
+
+    # only isozymes
     elif " or " in gene_rule:
         gene_rule_split = gene_rule.split(" or ")
         gene_rule_split = [
@@ -61,6 +89,8 @@ def _gene_rule_as_list(gene_rule: str) -> List[Any]:
         ]
         for part in gene_rule_split:
             gene_rules_array.append(part)
+
+    # only complex subunits
     else:  # if ("and" in gene_rule):
         gene_rule_split = gene_rule.split(" and ")
         gene_rule_split = [

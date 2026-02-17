@@ -40,7 +40,7 @@ from .helper_general import (
 
 # SCRIPT-WIDE CONSTANTS
 # URL for SABIO-RK's kcat REST API
-QUERY_URL = "http://sabiork.h-its.org/sabioRestWebServices/kineticlawsExportTsv"
+QUERY_URL = "https://sabiork.h-its.org/sabioRestWebServices/kineticlawsExportTsv"
 # Time in seconds to wait between SABIO-RK API calls
 WAIT_TIME = 1.5
 # Constant unit multipliers since SABIO-RK contains kcats in different units :O
@@ -160,6 +160,7 @@ def sabio_rk_query_with_string(query_string: str) -> str:
 
     # Send the request to SABIO-RK :D
     request = requests.post(QUERY_URL, params=query)
+
 
     # Error check whether the API call was successful or
     # not. 'Not successful' means that no search result with the given query

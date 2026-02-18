@@ -360,7 +360,7 @@ def get_initial_spreadsheets(
     reaction_id_gene_rules_mapping = {}
     for reaction in model.reactions:
         listed_gene_rules = _gene_rule_as_list(reaction.gene_reaction_rule)
-        if listed_gene_rules != [""]:
+        if listed_gene_rules != [""] and listed_gene_rules != []:
             reaction_id_gene_rules_mapping[reaction.id] = listed_gene_rules
 
     # Write XLSX
